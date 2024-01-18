@@ -38,3 +38,14 @@ class MouseEvent(ctypes.Structure):
         ("timestamp", ctypes.c_ulong),
         ("extra_info", PTR_UL)
     ]
+
+# Define Input_I union for various input types
+class Input_I(ctypes.Union):
+    _fields_ = [("ki", KeyboardEvent),
+                 ("mi", MouseEvent),
+                 ("hi", HardwareEvent)]
+
+# Define Input structure to hold input information
+class Input(ctypes.Structure):
+    _fields_ = [("type", ctypes.c_ulong),
+                ("ii", Input_I)]
