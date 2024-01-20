@@ -49,3 +49,36 @@ class Input_I(ctypes.Union):
 class Input(ctypes.Structure):
     _fields_ = [("type", ctypes.c_ulong),
                 ("ii", Input_I)]
+
+# Define press_key function
+def press_key(key_code):
+    """
+    Simulate pressing a keyboard key.
+
+    :param key_code: The virtual key code of the key to be pressed.
+    """
+    extra = ctypes.c_ulong(0)
+    ii_ = Input_I()
+    ii_.ki = KeyboardEvent(0, key_code, 0x0008, 0, ctypes.pointer(extra))
+    x = Input(ctypes.c_ulong(1), ii_)
+    ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
+
+# Define release_key function
+def release_key(key_code):
+    """
+    Simulate releasing a keyboard key.
+
+    :param key_code: The virtual key code of the key to be released.
+    """
+    extra = ctypes.c_ulong(0)
+    ii_ = Input_I()
+    ii_.ki = KeyboardEvent(0, key_code, 0x0008 | 0x0002, 0, ctypes.pointer(extra))
+    x = Input(ctypes.c_ulong(1), ii_)
+    ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
+
+# Test key press and release
+if __name__ == '__main__':
+    press_key(KEY_W)
+    time.sleep(1)
+    release_key(KEY_W)
+    time.sleep(1)
