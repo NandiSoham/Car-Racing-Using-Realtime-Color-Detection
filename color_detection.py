@@ -10,6 +10,7 @@ def create_color_detection_window():
 def on_trackbar_change(x):
     pass
 
+
 def main():
     cap = cv2.VideoCapture(0)
     
