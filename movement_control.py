@@ -3,6 +3,7 @@ import numpy as np
 import threading
 import imutils
 from imutils.video import VideoStream
+from keyboard_input_simulator import press_key, release_key, KEY_W, KEY_A, KEY_D, KEY_SPACE
 
 stop_event = threading.Event()
 current_key = []
@@ -66,7 +67,15 @@ def image_processing_thread():
     cam.stop()
     cv2.destroyAllWindows()
 
+def process_contours(contours, key_list, key_press, key_code, key_text, width):
+    key = False
+
+    if len(contours) > 0:
+        c = max(contours, key=cv2.contourArea)
+        M = cv2.moments(c)
+        cX = int(M["m10"] / (M["m00"] + 0.000001))
 
 
 if __name__ == "__main__":
-    
+    camera_thread = threading.Thread(target=image_processing_thread)
+    camera_thread.start()
