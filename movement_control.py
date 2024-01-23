@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import threading
+import imutils
 from imutils.video import VideoStream
 
 stop_event = threading.Event()
@@ -22,6 +23,9 @@ def image_processing_thread():
         colourLower = np.array([49, 102, 63])
         colourUpper = np.array([180, 255, 255])
 
+        mask = cv2.inRange(blurred, colourLower, colourUpper)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
         
         height, width = img.shape[:2]
 
@@ -29,6 +33,38 @@ def image_processing_thread():
         down_contour = mask[3*height//4:height, 2*width//5:3*width//5]
 
         key_pressed = False
+
+        contours_up, _ = cv2.findContours(up_contour, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if len(contours_up) > 0:
+            key_pressed, current_key = process_contours(
+                contours_up,
+                current_key, KEY_A, KEY_A, 'LEFT', width
+            )
+
+        contours_down, _ = cv2.findContours(down_contour, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if len(contours_down) > 0:
+            key_pressed, current_key = process_contours(
+                contours_down,
+                current_key, KEY_D, KEY_D, 'RIGHT', width
+            )
+
+        img = cv2.rectangle(img, (0, 0), (width//2 - 35, height//2), (0, 255, 0), 1)
+        cv2.putText(img, 'LEFT', (110, 30), cv2.FONT_HERSHEY_DUPLEX, 1, (139, 0, 0))
+
+        img = cv2.rectangle(img, (width//2 + 35, 0), (width-2, height//2), (0, 255, 0), 1)
+        cv2.putText(img, 'RIGHT', (440, 30), cv2.FONT_HERSHEY_DUPLEX, 1, (139, 0, 0))
+
+
+        cv2.imshow("Camera Feed", img)
+        cv2.waitKey(1)
+
+        if not key_pressed and len(current_key) != 0:
+            for current in current_key:
+                release_key(current)
+            current_key = []
+
+    cam.stop()
+    cv2.destroyAllWindows()
 
 
 
