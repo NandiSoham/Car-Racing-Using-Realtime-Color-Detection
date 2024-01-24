@@ -3,7 +3,7 @@ import numpy as np
 import threading
 import imutils
 from imutils.video import VideoStream
-from keyboard_input_simulator import press_key, release_key, KEY_W, KEY_A, KEY_D, KEY_SPACE
+from keyboard_handler import press_key, release_key, KEY_W, KEY_A, KEY_D, KEY_SPACE
 
 stop_event = threading.Event()
 current_key = []
@@ -57,7 +57,9 @@ def image_processing_thread():
 
 
         cv2.imshow("Camera Feed", img)
-        cv2.waitKey(1)
+        key = cv2.waitKey(1) & 0xFF  # Capture key press
+        if key == ord("q"):  # Check if 'q' is pressed
+            break
 
         if not key_pressed and len(current_key) != 0:
             for current in current_key:
@@ -75,7 +77,25 @@ def process_contours(contours, key_list, key_press, key_code, key_text, width):
         M = cv2.moments(c)
         cX = int(M["m10"] / (M["m00"] + 0.000001))
 
+        if cX < (width//2 - 35):
+            press_key(key_code)
+            key = True
+            key_list.append(key_code)
+        elif cX > (width // 2 + 35):
+            press_key(KEY_D)
+            key = True
+            key_list.append(KEY_D)
+
+    return key, key_list
+
 
 if __name__ == "__main__":
     camera_thread = threading.Thread(target=image_processing_thread)
     camera_thread.start()
+
+    try:
+        camera_thread.join()
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt: Stopping the program.")
+        stop_event.set()
+        time.sleep(1) 
